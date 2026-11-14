@@ -1,0 +1,815 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BEYOND EARTH | Mission Simulator</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --bg:#080d19;--panel:#111b2c;--panel2:#18263b;
+  --border:#293950;--text:#f3f6ff;--muted:#a0aec2;
+  --blue:#69b9ff;--green:#55d6a1;--red:#ff7777;
+  --yellow:#f4c66b;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,sans-serif}
+header{padding:20px 6%;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border);position:sticky;top:0;background:#080d19ee;z-index:10;backdrop-filter:blur(12px)}
+.logo{font-size:19px;font-weight:800;letter-spacing:2px}
+.logo span{color:var(--blue)}
+nav{display:flex;gap:22px}
+nav a{color:var(--muted);text-decoration:none;font-size:12px}
+nav a:hover{color:var(--blue)}
+.hero{padding:70px 7%;background:linear-gradient(90deg,#080d19f5,#080d1980),url('https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=1800') center/cover}
+.eyebrow{color:var(--blue);font-size:10px;font-weight:700;letter-spacing:3px}
+h1{font-size:clamp(40px,7vw,72px);line-height:1.05;margin:18px 0}
+.hero p,.muted{color:var(--muted);line-height:1.8;font-size:13px;max-width:650px}
+.container{padding:42px 7%}
+.section-title{font-size:25px;margin:10px 0}
+button{background:var(--blue);color:#07111e;border:0;border-radius:7px;padding:12px 18px;font-weight:700;cursor:pointer}
+button:hover{filter:brightness(1.12)}
+button.secondary{background:var(--panel2);color:var(--text);border:1px solid var(--border)}
+button:disabled{opacity:.4;cursor:not-allowed}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:17px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.card-body{padding:20px}
+.destination{cursor:pointer;transition:.2s}
+.destination:hover,.destination.active{border-color:var(--blue);transform:translateY(-3px)}
+.destination img{width:100%;height:190px;object-fit:cover}
+.destination h3{margin:7px 0}
+.tag{font-size:10px;letter-spacing:1.5px;color:var(--blue);font-weight:700}
+.details{display:none;margin-top:20px}
+.details.show{display:block}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0}
+.stat{background:var(--panel2);padding:17px;border-radius:9px}
+.stat small{color:var(--muted);font-size:10px}
+.stat strong{display:block;font-size:20px;margin-top:10px}
+.info-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:13px}
+.info{background:var(--panel);border:1px solid var(--border);padding:20px;border-radius:10px}
+.info h3{font-size:14px;margin-top:0}
+.info p,.info li{color:var(--muted);font-size:12px;line-height:1.8}
+.info ul{padding-left:18px}
+.builder{display:grid;grid-template-columns:1.3fr .7fr;gap:20px;align-items:start}
+.panel{background:var(--panel);border:1px solid var(--border);padding:22px;border-radius:12px;margin-bottom:16px}
+.panel h3{margin-top:0;font-size:15px}
+.field{margin:17px 0}
+.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:8px}
+select,input[type=number]{width:100%;background:var(--panel2);color:var(--text);border:1px solid var(--border);padding:12px;border-radius:7px}
+.options{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}
+.option{background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:12px;cursor:pointer}
+.option input{accent-color:var(--blue);margin-right:7px}
+.option small{display:block;color:var(--muted);margin:6px 0 0 23px;line-height:1.5}
+.metric{display:flex;justify-content:space-between;gap:10px;padding:12px 0;border-bottom:1px solid var(--border);font-size:12px}
+.metric span:first-child{color:var(--muted)}
+.metric strong{text-align:right}
+.good{color:var(--green)}.bad{color:var(--red)}.warn{color:var(--yellow)}
+.bar{height:8px;background:#27364b;border-radius:10px;overflow:hidden;margin:10px 0 17px}
+.bar div{height:100%;background:var(--green);width:0%;transition:.3s}
+.status{padding:14px;border-radius:8px;background:var(--panel2);font-size:12px;line-height:1.7;margin:14px 0}
+.status.success{border:1px solid var(--green)}
+.status.failure{border:1px solid var(--red)}
+#simulation{display:none;margin-top:20px}
+#simulation.show{display:block}
+.phase{display:flex;gap:12px;align-items:start;padding:13px 0;border-bottom:1px solid var(--border);font-size:12px;line-height:1.7}
+.phase-icon{font-size:19px}
+.phase p{color:var(--muted);margin:5px 0}
+.result{padding:20px;border:1px solid var(--border);border-radius:10px;background:var(--panel2);margin-top:17px}
+.result h3{margin-top:0}
+footer{padding:30px;text-align:center;border-top:1px solid var(--border);color:var(--muted);font-size:11px}
+a{color:var(--blue)}
+@media(max-width:800px){
+ .builder{grid-template-columns:1fr}
+ .stats{grid-template-columns:repeat(2,1fr)}
+ .grid,.info-grid{grid-template-columns:1fr}
+ nav{gap:10px}nav a{font-size:10px}
+}
+</style>
+</head>
+<body>
+
+<header>
+ <div class="logo">BEYOND<span>EARTH.</span></div>
+ <nav>
+  <a href="#destinations">DESTINATIONS</a>
+  <a href="#designer">DESIGN MISSION</a>
+  <a href="#simulation">SIMULATION</a>
+ </nav>
+</header>
+
+<section class="hero">
+ <div class="eyebrow">INTERACTIVE AEROSPACE ENGINEERING PLATFORM</div>
+ <h1>DESIGN YOUR<br>MISSION BEYOND EARTH.</h1>
+ <p>
+ Explore the Moon and Mars. Design a spacecraft, select its
+ scientific instruments, balance limited resources and test
+ whether your mission can survive the journey.
+ </p>
+ <button onclick="go('destinations')">EXPLORE DESTINATIONS →</button>
+</section>
+
+<section class="container" id="game">
+  <div class="eyebrow">SPACE AGENCY HEADQUARTERS</div>
+  <h2 class="section-title">Your Space Agency</h2>
+
+  <div class="panel">
+    <div class="metric">
+      <span>Commander Level</span>
+      <strong id="gameLevel">LEVEL 1</strong>
+    </div>
+    <div class="metric">
+      <span>Credits</span>
+      <strong id="credits">2,500 CR</strong>
+    </div>
+    <div class="metric">
+      <span>Experience</span>
+      <strong id="xp">0 XP</strong>
+    </div>
+    <div class="metric">
+      <span>Successful Missions</span>
+      <strong id="wins">0</strong>
+    </div>
+
+    <p class="muted">LEVEL PROGRESS</p>
+    <div class="bar">
+      <div id="xpBar"></div>
+    </div>
+    <p class="muted" id="xpText">0 / 500 XP</p>
+  </div>
+
+  <div class="grid">
+    <div class="panel">
+      <h3>🏆 Achievements</h3>
+      <div id="achievements" class="muted">
+        No achievements yet.
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>🛒 Research and upgrades</h3>
+      <p class="muted">
+        Spend credits to increase your mission funding.
+      </p>
+      <div class="metric">
+        <span>Research funding package</span>
+        <strong>500 CR</strong>
+      </div>
+      <p class="muted">Adds $250 million to your available mission budget.</p>
+      <button onclick="buyFunding()">BUY FUNDING</button>
+      <p id="shopMessage" class="muted"></p>
+    </div>
+  </div>
+</section>
+
+<section class="container" id="destinations">
+ <div class="eyebrow">01 / DESTINATION RESEARCH</div>
+ <h2 class="section-title">Choose your destination</h2>
+ <p class="muted">Understand the environmental conditions before designing your mission.</p>
+
+ <div class="grid" style="margin-top:22px">
+  <div class="card destination" onclick="selectPlanet('moon',this)">
+   <img src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800" alt="Earth and space">
+   <div class="card-body">
+    <div class="tag">DESTINATION 01</div>
+    <h3>The Moon</h3>
+    <p class="muted">A nearby world with extreme temperatures, lunar dust and almost no atmosphere.</p>
+    <button>EXPLORE MOON →</button>
+   </div>
+  </div>
+  <div class="card destination" onclick="selectPlanet('mars',this)">
+   <img src="https://images.unsplash.com/photo-1614728894747-a83421e2b9c9?w=800" alt="Mars">
+   <div class="card-body">
+    <div class="tag">DESTINATION 02</div>
+    <h3>Mars</h3>
+    <p class="muted">A distant planet requiring long-duration life support, advanced propulsion and autonomous operations.</p>
+    <button>EXPLORE MARS →</button>
+   </div>
+  </div>
+ </div>
+
+ <div class="details" id="planetDetails">
+  <div class="panel">
+   <div class="eyebrow" id="pLabel"></div>
+   <h2 id="pName"></h2>
+   <p class="muted" id="pDescription"></p>
+  </div>
+  <div class="stats">
+   <div class="stat"><small>AVERAGE EARTH DISTANCE</small><strong id="pDistance"></strong></div>
+   <div class="stat"><small>APPROX. ONE-WAY TRAVEL</small><strong id="pTravel"></strong></div>
+   <div class="stat"><small>SURFACE GRAVITY</small><strong id="pGravity"></strong></div>
+   <div class="stat"><small>ATMOSPHERE</small><strong id="pAtmosphere"></strong></div>
+  </div>
+  <div class="info-grid" id="planetInfo"></div>
+  <button onclick="go('designer')">DESIGN A MISSION TO THIS DESTINATION →</button>
+ </div>
+</section>
+
+<section class="container" id="designer">
+ <div class="eyebrow">02 / SPACECRAFT ENGINEERING</div>
+ <h2 class="section-title">Mission design laboratory</h2>
+ <p class="muted">Choose your spacecraft systems. Every selection affects your mission resources.</p>
+
+ <div class="builder">
+  <div>
+   <div class="panel">
+    <h3>01. Mission configuration</h3>
+    <div class="field">
+     <label>Destination</label>
+     <select id="destination" onchange="calculate()">
+      <option value="moon">The Moon</option>
+      <option value="mars">Mars</option>
+     </select>
+    </div>
+    <div class="field">
+     <label>Mission objective</label>
+     <select id="objective" onchange="calculate()">
+      <option value="orbiter">Orbital observation</option>
+      <option value="lander">Surface landing and research</option>
+      <option value="crew">Crewed exploration</option>
+      <option value="return">Crewed exploration and return</option>
+     </select>
+    </div>
+    <div class="field">
+     <label>Available mission budget (million USD)</label>
+     <input type="number" id="budget" value="1500" min="100" max="100000" onchange="calculate()">
+    </div>
+   </div>
+
+   <div class="panel">
+    <h3>02. Launch vehicle</h3>
+    <div class="field">
+     <label>Select your launch vehicle</label>
+     <select id="rocket" onchange="calculate()">
+      <option value="10000">Small launcher — 10,000 kg payload capacity</option>
+      <option value="27000">Medium launcher — 27,000 kg payload capacity</option>
+      <option value="95000" selected>Heavy launcher — 95,000 kg payload capacity</option>
+      <option value="130000">Super heavy launcher — 130,000 kg payload capacity</option>
+     </select>
+    </div>
+   </div>
+
+   <div class="panel">
+    <h3>03. Propulsion system</h3>
+    <div class="field">
+     <label>Engine type</label>
+     <select id="engine" onchange="calculate()">
+      <option value="chemical">Chemical propulsion</option>
+      <option value="electric">Electric propulsion</option>
+      <option value="advanced">Advanced high-performance propulsion (conceptual)</option>
+     </select>
+    </div>
+    <p class="muted">Engine choice affects the simplified propulsion capability and estimated mission cost. Electric propulsion generally offers high propellant efficiency but low thrust.</p>
+   </div>
+
+   <div class="panel">
+    <h3>04. Scientific instruments</h3>
+    <p class="muted">Select the instruments your mission will carry.</p>
+    <div class="options" id="instruments"></div>
+   </div>
+
+   <div class="panel">
+    <h3>05. Power generation</h3>
+    <div class="field">
+     <label>Power source</label>
+     <select id="powerSource" onchange="calculate()">
+      <option value="solar">Solar panels</option>
+      <option value="nuclear">Nuclear fission power system</option>
+     </select>
+    </div>
+   </div>
+
+   <div class="panel">
+    <h3>06. Mission systems</h3>
+    <div class="options" id="systems"></div>
+   </div>
+
+   <div class="panel">
+    <h3>07. Mission duration</h3>
+    <div class="field">
+     <label>Planned surface/orbital operation (days)</label>
+     <input id="duration" type="number" min="1" max="1000" value="14" onchange="calculate()">
+    </div>
+    <div class="field">
+     <label>Include Earth return?</label>
+     <select id="returnTrip" onchange="calculate()">
+      <option value="no">No — one-way mission</option>
+      <option value="yes">Yes — return to Earth</option>
+     </select>
+    </div>
+   </div>
+  </div>
+
+  <div>
+   <div class="panel" style="position:sticky;top:85px">
+    <div class="eyebrow">LIVE ENGINEERING DASHBOARD</div>
+    <h3>Mission resources</h3>
+
+    <div class="metric"><span>Spacecraft mass</span><strong id="mass">--</strong></div>
+    <div class="metric"><span>Launch capacity</span><strong id="capacity">--</strong></div>
+    <div class="metric"><span>Mass utilization</span><strong id="massPct">--</strong></div>
+    <div class="bar"><div id="massBar"></div></div>
+
+    <div class="metric"><span>Power demand</span><strong id="demand">--</strong></div>
+    <div class="metric"><span>Power generation</span><strong id="generation">--</strong></div>
+    <div class="metric"><span>Power balance</span><strong id="powerBalance">--</strong></div>
+    <div class="bar"><div id="powerBar"></div></div>
+
+    <div class="metric"><span>Estimated budget</span><strong id="cost">--</strong></div>
+    <div class="metric"><span>Available budget</span><strong id="available">--</strong></div>
+    <div class="metric"><span>Budget remaining</span><strong id="remaining">--</strong></div>
+
+    <div class="metric"><span>Required delta-v</span><strong id="requiredDV">--</strong></div>
+    <div class="metric"><span>Design delta-v</span><strong id="availableDV">--</strong></div>
+
+    <div id="feasibility" class="status">Configure your mission to see its feasibility.</div>
+
+    <button style="width:100%" onclick="runMission()">LAUNCH SIMULATION →</button>
+    <button class="secondary" style="width:100%;margin-top:9px" onclick="resetMission()">RESET DESIGN</button>
+   </div>
+  </div>
+ </div>
+</section>
+
+<section class="container" id="simulation">
+ <div class="eyebrow">03 / MISSION OPERATIONS</div>
+ <h2 class="section-title">Mission simulation</h2>
+ <p class="muted">Follow the spacecraft through its mission and examine the consequences of your design.</p>
+ <div class="panel">
+  <div id="missionSummary"></div>
+  <div id="missionTimeline"></div>
+  <div class="result" id="finalResult"></div>
+ </div>
+</section>
+
+<section class="container">
+ <div class="eyebrow">04 / SCIENTIFIC REFERENCES</div>
+ <h2 class="section-title">NASA research resources</h2>
+ <div class="info-grid">
+  <div class="info"><h3>Moon</h3><p><a href="https://science.nasa.gov/moon/facts/" target="_blank">NASA Moon Facts</a></p></div>
+  <div class="info"><h3>Mars</h3><p><a href="https://science.nasa.gov/mars/facts/" target="_blank">NASA Mars Facts</a></p></div>
+  <div class="info"><h3>Human spaceflight</h3><p><a href="https://www.nasa.gov/hrp/hazards/" target="_blank">NASA Human Spaceflight Hazards</a></p></div>
+  <div class="info"><h3>Mission architecture</h3><p><a href="https://www.nasa.gov/moontomarsarchitecture-supplementalreading/" target="_blank">NASA Moon to Mars Architecture</a></p></div>
+ </div>
+</section>
+
+<footer>
+ BEYOND EARTH © 2026 | Educational Mission Design Simulator<br><br>
+ All cost, mass, power, delta-v and mission reliability figures in this prototype are illustrative estimates, not certified aerospace engineering specifications.
+</footer>
+
+<script>
+
+// Destination research data
+const planets = {
+ moon:{
+  label:"EARTH'S NATURAL SATELLITE",
+  name:"THE MOON",
+  description:"The Moon is Earth's closest natural neighbor. It offers opportunities to study planetary geology, polar water ice and technologies for deep-space exploration.",
+  distance:"384,400 km",
+  travel:"~3 days",
+  gravity:"1.62 m/s²",
+  atmosphere:"Near vacuum",
+  sections:[
+   ["Environment",["Surface temperatures approximately -173°C to 127°C.","No substantial atmosphere or breathable air.","Abrasive lunar dust.","Long daylight and darkness periods depending on location."]],
+   ["Transportation",["Launch vehicle and translunar injection.","Propulsion for lunar orbit insertion.","Lander and ascent system for surface missions."]],
+   ["Life support",["Pressurized habitat.","Oxygen supply and CO₂ removal.","Water recovery and purification.","Food and waste management."]],
+   ["Power",["Solar arrays and batteries.","Thermal management.","Additional energy storage for long lunar nights."]],
+   ["Radiation",["Solar particle event shielding.","Galactic cosmic radiation protection.","Radiation monitoring."]],
+   ["Communication",["High-gain antennas.","Lunar relay satellites where necessary.","Telemetry and navigation systems."]],
+   ["Habitat",["Pressurized living space.","Micrometeoroid protection.","Thermal insulation and dust-resistant airlocks."]],
+   ["Science",["Lunar geology.","Polar water ice investigation.","Study of Solar System history."]]
+  ],
+  warning:"The Moon has no breathable atmosphere. Radiation, temperature extremes and lunar dust are major engineering challenges."
+ },
+ mars:{
+  label:"THE RED PLANET",
+  name:"MARS",
+  description:"Mars is a major future destination for human exploration. A crewed mission requires long-duration spacecraft, autonomous operations, radiation protection and reliable surface infrastructure.",
+  distance:"54.6–401 million km",
+  travel:"~6–9 months",
+  gravity:"3.71 m/s²",
+  atmosphere:"~96% CO₂",
+  sections:[
+   ["Environment",["Thin carbon-dioxide atmosphere.","Temperatures can range approximately -153°C to 20°C.","Dust storms and fine surface particles.","Lower gravity than Earth."]],
+   ["Transportation",["Interplanetary launch vehicle.","Trajectory and launch-window planning.","Mars entry, descent and landing.","Ascent vehicle for a return mission."]],
+   ["Life support",["Long-duration oxygen supply and recycling.","Water recovery systems.","Food storage and production research.","CO₂ removal and medical systems."]],
+   ["Power",["Solar arrays or nuclear fission power.","Energy storage.","Dust-storm power contingency.","Energy for heating and life support."]],
+   ["Radiation",["Deep-space radiation shielding.","Solar storm shelter.","Radiation monitoring.","Shielded habitat areas."]],
+   ["Communication",["High-gain antennas.","Orbital relay network.","Communication delays of several minutes or more.","Autonomous spacecraft operations."]],
+   ["Habitat",["Pressurized surface habitat.","Thermal insulation.","Dust protection and airlocks.","Emergency shelter and medical facilities."]],
+   ["Science",["Search for evidence of ancient life.","Geological research.","Subsurface water ice.","Atmospheric and climate studies."]]
+  ],
+  warning:"Mars missions involve long periods of isolation, radiation exposure, delayed communication, difficult landing operations and complex return logistics."
+ }
+};
+
+function go(id){
+ document.getElementById(id).scrollIntoView({behavior:"smooth"});
+}
+
+function selectPlanet(id,el){
+ document.querySelectorAll(".destination").forEach(x=>x.classList.remove("active"));
+ el.classList.add("active");
+ const p=planets[id];
+ document.getElementById("planetDetails").classList.add("show");
+ document.getElementById("pLabel").textContent=p.label;
+ document.getElementById("pName").textContent=p.name;
+ document.getElementById("pDescription").textContent=p.description;
+ document.getElementById("pDistance").textContent=p.distance;
+ document.getElementById("pTravel").textContent=p.travel;
+ document.getElementById("pGravity").textContent=p.gravity;
+ document.getElementById("pAtmosphere").textContent=p.atmosphere;
+ document.getElementById("planetInfo").innerHTML=p.sections.map(s=>
+ `<div class="info"><h3>${s[0]}</h3><ul>${s[1].map(x=>`<li>${x}</li>`).join("")}</ul></div>`
+ ).join("")+`<div class="info" style="grid-column:1/-1"><strong>MISSION CHALLENGE</strong><p>${p.warning}</p></div>`;
+ document.getElementById("destination").value=id;
+ calculate();
+}
+
+const instruments=[
+ {name:"High-resolution camera",mass:80,cost:35,power:60},
+ {name:"Spectrometer",mass:100,cost:45,power:80},
+ {name:"Ground-penetrating radar",mass:140,cost:70,power:110},
+ {name:"Atmospheric analyzer",mass:65,cost:30,power:50},
+ {name:"Drilling system",mass:220,cost:100,power:160},
+ {name:"Seismometer",mass:45,cost:25,power:20}
+];
+
+const systems=[
+ {name:"Life support system",mass:500,cost:160,power:800,essential:true},
+ {name:"Thermal control",mass:180,cost:80,power:350,essential:true},
+ {name:"Radiation shielding",mass:300,cost:110,power:0,essential:true},
+ {name:"Communication antenna",mass:100,cost:50,power:100,essential:true},
+ {name:"Navigation system",mass:70,cost:40,power:60,essential:true},
+ {name:"Landing system",mass:450,cost:180,power:120,essential:false},
+ {name:"Crew habitat",mass:1200,cost:300,power:500,essential:false},
+ {name:"Emergency equipment",mass:150,cost:60,power:40,essential:true},
+ {name:"Water recycling",mass:220,cost:90,power:180,essential:false}
+];
+
+function makeOptions(data,target){
+ const box=document.getElementById(target);
+ box.innerHTML=data.map((x,i)=>`
+ <label class="option">
+ <input type="checkbox" data-index="${i}" onchange="calculate()">
+ ${x.name}
+ <small>${x.mass} kg · $${x.cost}M · ${x.power} W</small>
+ </label>`).join("");
+}
+
+makeOptions(instruments,"instruments");
+makeOptions(systems,"systems");
+
+function selected(data,target){
+ return [...document.querySelectorAll(`#${target} input:checked`)]
+ .map(el=>data[Number(el.dataset.index)]);
+}
+
+function calculate(){
+ const dest=document.getElementById("destination").value;
+ const objective=document.getElementById("objective").value;
+ const engine=document.getElementById("engine").value;
+ const powerSource=document.getElementById("powerSource").value;
+ const budget=Math.max(0,Number(document.getElementById("budget").value)||0);
+ const rocket=Number(document.getElementById("rocket").value);
+ const duration=Math.max(1,Number(document.getElementById("duration").value)||1);
+ const returning=document.getElementById("returnTrip").value==="yes";
+
+ const ins=selected(instruments,"instruments");
+ const sys=selected(systems,"systems");
+
+ const crew=objective==="crew"||objective==="return";
+ const landing=objective==="lander"||crew;
+
+ // Simplified design estimates
+ const baseMass=dest==="moon"?900:1200;
+ const crewMass=crew?1200:0;
+ const landingMass=landing?450:0;
+ const returnMass=returning?600:0;
+ const mass=baseMass+crewMass+landingMass+returnMass+
+ ins.reduce((a,x)=>a+x.mass,0)+sys.reduce((a,x)=>a+x.mass,0);
+
+ const demand=100+ins.reduce((a,x)=>a+x.power,0)+
+ sys.reduce((a,x)=>a+x.power,0)+
+ (crew?700:0)+(dest==="mars"?150:0);
+
+ const generation=powerSource==="solar"?
+ (dest==="moon"?1800:1300):2500;
+
+ const rocketCost=rocket===10000?300:
+ rocket===27000?550:rocket===95000?900:1200;
+
+ const engineCost=engine==="chemical"?250:
+ engine==="electric"?400:800;
+
+ const missionCost=rocketCost+engineCost+
+ ins.reduce((a,x)=>a+x.cost,0)+
+ sys.reduce((a,x)=>a+x.cost,0)+
+ (crew?500:0)+(returning?400:0)+
+ (dest==="mars"?700:100);
+
+ const requiredDV=(dest==="moon"?6.0:5.7)+
+ (landing?1.5:0)+(returning?2.5:0);
+
+ const availableDV=engine==="chemical"?8.5:
+ engine==="electric"?5.0:11.0;
+
+ const massOK=mass<=rocket;
+ const powerOK=generation>=demand;
+ const budgetOK=missionCost<=budget;
+ const dvOK=availableDV>=requiredDV;
+ const essentialsOK=systems.filter(x=>x.essential)
+ .every(x=>sys.includes(x));
+
+ const landingOK=!landing||sys.some(x=>x.name==="Landing system");
+ const habitatOK=!crew||(
+ sys.some(x=>x.name==="Crew habitat")&&
+ sys.some(x=>x.name==="Life support system")
+ );
+ const returnOK=!returning||dest==="moon"||sys.some(x=>x.name==="Landing system");
+
+ const checks=[
+  massOK,powerOK,budgetOK,dvOK,essentialsOK,landingOK,habitatOK,returnOK
+ ];
+ const passed=checks.filter(Boolean).length;
+ const feasible=passed===checks.length;
+
+ const set=(id,value)=>document.getElementById(id).textContent=value;
+ const cls=(id,ok)=>document.getElementById(id).className=ok?"good":"bad";
+
+ set("mass",mass.toLocaleString()+" kg");
+ set("capacity",rocket.toLocaleString()+" kg");
+ set("massPct",Math.round(mass/rocket*100)+"%");
+ document.getElementById("massBar").style.width=Math.min(100,mass/rocket*100)+"%";
+ document.getElementById("massBar").style.background=massOK?"var(--green)":"var(--red)";
+
+ set("demand",demand.toLocaleString()+" W");
+ set("generation",generation.toLocaleString()+" W");
+ set("powerBalance",(generation-demand>=0?"+":"")+(generation-demand).toLocaleString()+" W");
+ document.getElementById("powerBar").style.width=Math.min(100,demand/generation*100)+"%";
+ document.getElementById("powerBar").style.background=powerOK?"var(--green)":"var(--red)";
+
+ set("cost","$"+missionCost.toLocaleString()+"M");
+ set("available","$"+budget.toLocaleString()+"M");
+ set("remaining","$"+(budget-missionCost).toLocaleString()+"M");
+ set("requiredDV",requiredDV.toFixed(1)+" km/s");
+ set("availableDV",availableDV.toFixed(1)+" km/s");
+
+ cls("mass",massOK);cls("powerBalance",powerOK);
+ cls("remaining",budgetOK);cls("availableDV",dvOK);
+
+ const status=document.getElementById("feasibility");
+ status.className="status "+(feasible?"success":"failure");
+ status.innerHTML=feasible?
+ `<strong class="good">DESIGN PASSES ALL CHECKS</strong><br>All ${checks.length} simplified design constraints are satisfied. You can proceed to simulation.`:
+ `<strong class="bad">DESIGN NEEDS IMPROVEMENT</strong><br>${passed}/${checks.length} constraints passed. Review the following:<br>
+ ${[
+ !massOK?"• Spacecraft exceeds launch payload capacity.":"",
+ !powerOK?"• Insufficient power generation.":"",
+ !budgetOK?"• Mission exceeds available budget.":"",
+ !dvOK?"• Propulsion delta-v estimate is insufficient.":"",
+ !essentialsOK?"• One or more essential spacecraft systems are missing.":"",
+ !landingOK?"• Landing objective requires a landing system.":"",
+ !habitatOK?"• Crewed missions require a habitat and life support.":"",
+ !returnOK?"• Return mission requires an appropriate landing system.":""
+ ].filter(Boolean).join("<br>")}`;
+
+ return {dest,objective,engine,powerSource,budget,rocket,duration,
+ returning,ins,sys,mass,demand,generation,missionCost,
+ requiredDV,availableDV,checks,feasible,passed};
+}
+
+function runMission(){
+ const d=calculate();
+ const section=document.getElementById("simulation");
+ section.classList.add("show");
+ go("simulation");
+
+ const planet=d.dest==="moon"?"Moon":"Mars";
+ const phases=[
+  ["🚀","Launch and deployment","The launch vehicle attempts to deliver the spacecraft into its departure trajectory.",d.mass<=d.rocket],
+  ["🛰️","Interplanetary navigation","The spacecraft follows its planned transfer trajectory.",d.availableDV>=d.requiredDV],
+  ["⚡","Power management","The spacecraft checks whether available power meets system demand.",d.generation>=d.demand],
+  ["📡","Communication","Communication systems are evaluated for mission operations.",d.sys.some(x=>x.name==="Communication antenna")],
+  ["🧪","Scientific operations","Selected instruments conduct their planned observations.",d.ins.length>0],
+  ["🛬","Destination operations","The spacecraft reaches its destination and attempts the planned operations.",d.objective==="orbiter"||d.sys.some(x=>x.name==="Landing system")],
+  ["🧑‍🚀","Crew safety","Life support and habitat systems are evaluated.",d.objective==="orbiter"||d.objective==="lander"||(d.sys.some(x=>x.name==="Life support system")&&d.sys.some(x=>x.name==="Crew habitat"))],
+  ["🌍","Return to Earth","The return plan is evaluated if the mission requires it.",!d.returning||d.dest==="moon"||d.sys.some(x=>x.name==="Landing system")]
+ ];
+
+ const missionPhases=phases.filter((p,i)=>i!==7||d.returning);
+ const successful=d.feasible&&missionPhases.every(p=>p[3]);
+ const timeline=document.getElementById("missionTimeline");
+
+ document.getElementById("missionSummary").innerHTML=`
+ <div class="metric"><span>Destination</span><strong>${planet}</strong></div>
+ <div class="metric"><span>Mission objective</span><strong>${d.objective}</strong></div>
+ <div class="metric"><span>Estimated spacecraft mass</span><strong>${d.mass.toLocaleString()} kg</strong></div>
+ <div class="metric"><span>Mission cost estimate</span><strong>$${d.missionCost.toLocaleString()} million</strong></div>
+ <div class="metric"><span>Mission constraints passed</span><strong>${d.passed}/8</strong></div>`;
+
+ timeline.innerHTML="<h3>Mission timeline</h3>"+missionPhases.map((p,i)=>`
+ <div class="phase">
+ <div class="phase-icon">${p[0]}</div>
+ <div><strong>${i+1}. ${p[1]}</strong>
+ <p>${p[2]}</p>
+ <span class="${p[3]?"good":"bad"}">${p[3]?"✓ CONDITION SATISFIED":"✕ CONDITION NOT SATISFIED"}</span>
+ </div></div>`).join("");
+
+ document.getElementById("finalResult").innerHTML=`
+ <div class="eyebrow">MISSION REPORT</div>
+ <h3 class="${successful?"good":"bad"}">${successful?"MISSION DESIGN PASSED":"MISSION DESIGN FAILED"}</h3>
+ <p class="muted">${successful?
+ "Your proposed design passed all simplified engineering checks. The mission is considered feasible within this educational model, not validated for actual flight.":
+ "Your proposed design has unresolved engineering constraints. Return to the mission designer, adjust your spacecraft and try again."}</p>
+ <p><strong>Engineering score: ${Math.round(d.passed/8*100)}%</strong></p>
+ <div class="bar"><div style="width:${d.passed/8*100}%;background:${successful?"var(--green)":"var(--red)"}"></div></div>
+ <button onclick="go('designer')">IMPROVE YOUR DESIGN</button>`;
+}
+
+function resetMission(){
+ document.querySelectorAll("#instruments input,#systems input").forEach(x=>x.checked=false);
+ document.getElementById("destination").value="moon";
+ document.getElementById("objective").value="orbiter";
+ document.getElementById("budget").value=1500;
+ document.getElementById("rocket").value=95000;
+ document.getElementById("engine").value="chemical";
+ document.getElementById("powerSource").value="solar";
+ document.getElementById("duration").value=14;
+ document.getElementById("returnTrip").value="no";
+ document.getElementById("simulation").classList.remove("show");
+ calculate();
+}
+
+calculate();
+
+// GAME PROFILE
+const defaultGame = {
+  credits: 2500,
+  xp: 0,
+  wins: 0,
+  missions: 0,
+  achievements: []
+};
+
+let game;
+
+try {
+  game = {
+    ...defaultGame,
+    ...JSON.parse(localStorage.getItem("beyondEarthGame") || "{}")
+  };
+} catch {
+  game = {...defaultGame};
+}
+
+function saveGame() {
+  localStorage.setItem("beyondEarthGame", JSON.stringify(game));
+  updateGameUI();
+}
+
+function getLevel() {
+  if (game.xp >= 1500) return 3;
+  if (game.xp >= 500) return 2;
+  return 1;
+}
+
+function updateGameUI() {
+  const level = getLevel();
+  const thresholds = [0, 500, 1500, 3000];
+  const current = thresholds[level - 1];
+  const next = thresholds[level];
+
+  document.getElementById("gameLevel").textContent =
+    "LEVEL " + level;
+
+  document.getElementById("credits").textContent =
+    game.credits.toLocaleString() + " CR";
+
+  document.getElementById("xp").textContent =
+    game.xp + " XP";
+
+  document.getElementById("wins").textContent =
+    game.wins;
+
+  const progress = Math.min(
+    100,
+    ((game.xp - current) / (next - current)) * 100
+  );
+
+  document.getElementById("xpBar").style.width =
+    progress + "%";
+
+  document.getElementById("xpText").textContent =
+    `${game.xp} XP | Next level: ${next} XP`;
+
+  const badges = [
+    ["First Mission", "missions", 1],
+    ["Moon Explorer", "moon", 1],
+    ["Mars Pioneer", "mars", 1],
+    ["Perfect Engineer", "perfect", 1],
+    ["Veteran Commander", "wins", 5]
+  ];
+
+  document.getElementById("achievements").innerHTML =
+    badges.map(b => {
+      const unlocked = game.achievements.includes(b[0]);
+      return `
+        <div class="metric">
+          <span>${unlocked ? "🏅" : "🔒"} ${b[0]}</span>
+          <strong class="${unlocked ? "good" : "muted"}">
+            ${unlocked ? "UNLOCKED" : "LOCKED"}
+          </strong>
+        </div>`;
+    }).join("");
+}
+
+function unlockBadge(name) {
+  if (!game.achievements.includes(name)) {
+    game.achievements.push(name);
+  }
+}
+
+function buyFunding() {
+  const message = document.getElementById("shopMessage");
+
+  if (game.credits < 500) {
+    message.textContent = "Not enough credits!";
+    message.className = "bad";
+    return;
+  }
+
+  game.credits -= 500;
+
+  const budget = document.getElementById("budget");
+  budget.value = Number(budget.value) + 250;
+
+  calculate();
+  saveGame();
+
+  message.textContent =
+    "Purchase successful! +$250M mission funding.";
+  message.className = "good";
+}
+
+function awardMission(d, successful) {
+
+  game.missions++;
+
+  let reward = 0;
+  let earnedXP = 50;
+
+  if (successful) {
+    game.wins++;
+
+    reward = d.dest === "moon" ? 800 : 1500;
+    earnedXP = d.dest === "moon" ? 200 : 500;
+
+    if (d.checks.every(Boolean)) {
+      reward += 300;
+      unlockBadge("Perfect Engineer");
+    }
+
+    if (d.dest === "moon") unlockBadge("Moon Explorer");
+    if (d.dest === "mars") unlockBadge("Mars Pioneer");
+
+    if (d.budget - d.missionCost >= 250) {
+      reward += 150;
+    }
+
+  } else {
+    reward = 100;
+  }
+
+  game.credits += reward;
+  game.xp += earnedXP;
+
+  if (game.missions === 1) {
+    unlockBadge("First Mission");
+  }
+
+  if (game.wins >= 5) {
+    unlockBadge("Veteran Commander");
+  }
+
+  saveGame();
+
+  const result = document.getElementById("finalResult");
+
+  result.innerHTML += `
+    <div class="result">
+      <div class="eyebrow">SPACE AGENCY REWARDS</div>
+      <h3 class="good">+${reward} CR</h3>
+      <p>Experience earned: +${earnedXP} XP</p>
+      <p>Total credits: ${game.credits.toLocaleString()} CR</p>
+      <p>Commander level: ${getLevel()}</p>
+    </div>`;
+}
+
+// Initialize saved player profile
+updateGameUI();
+
+</script>
+</body>
+</html>
